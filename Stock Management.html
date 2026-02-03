@@ -1,0 +1,1144 @@
+function loadFromLocalStorage() {
+            const savedProducts = localStorage.getItem('products');
+            const savedSales = localStorage.getItem('sales<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Jewellers - Wholesale System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 50%, #ddd6fe 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo h1 {
+            color: #ffffff;
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .logo p {
+            color: #e9d5ff;
+            font-size: 0.9rem;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-green:hover:not(:disabled) {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 100%);
+            color: #5b21b6;
+            box-shadow: 0 2px 8px rgba(167, 139, 250, 0.3);
+        }
+
+        .btn-purple:hover:not(:disabled) {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-gray {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(75, 85, 99, 0.3);
+        }
+
+        .btn-gray:hover {
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);
+            padding: 2rem;
+            border: 1px solid #e9d5ff;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);
+        }
+
+        .product-table thead {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+        }
+
+        .product-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .product-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.2s;
+        }
+
+        .product-table tbody tr.product-last-row {
+            border-bottom: 2px solid #e9d5ff;
+        }
+
+        .product-table tbody tr:hover {
+            background: #faf5ff;
+        }
+
+        .product-table td {
+            padding: 1rem;
+            color: #1f2937;
+        }
+
+        .product-name-cell {
+            font-weight: 600;
+            color: #5b21b6;
+            font-size: 1rem;
+        }
+
+        .weight-cell {
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .action-cell {
+            text-align: center;
+        }
+
+        .stock-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .stock-high { color: #059669; }
+        .stock-low { color: #d97706; }
+        .stock-out { color: #dc2626; }
+
+        .cart-section {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .cart-item {
+            border-bottom: 1px solid #e9d5ff;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .cart-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-item-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #5b21b6;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .cart-item-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .quantity-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: #e9d5ff;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6d28d9;
+            transition: all 0.2s;
+        }
+
+        .qty-btn:hover {
+            background: #c4b5fd;
+            transform: scale(1.1);
+        }
+
+        .bill-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .bill-table th,
+        .bill-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .bill-table th {
+            background: #f3e8ff;
+            font-weight: 600;
+            color: #5b21b6;
+        }
+
+        .bill-table td {
+            color: #1f2937;
+        }
+
+        .bill-header {
+            text-align: center;
+            border-bottom: 3px solid #8b5cf6;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .company-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .bill-totals {
+            border-top: 2px solid #e9d5ff;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .total-label {
+            margin-right: 2rem;
+            color: #5b21b6;
+            font-weight: 500;
+        }
+
+        .total-value {
+            font-weight: 600;
+            color: #6d28d9;
+        }
+
+        .gold-price-input {
+            width: 160px;
+            padding: 0.5rem 1rem;
+            border: 2px solid #c4b5fd;
+            border-radius: 0.5rem;
+            text-align: right;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .gold-price-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .final-total {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #7c3aed;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-full {
+            flex: 1;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        @media (max-width: 1024px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-section {
+                position: relative;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>PREMIUM JEWELLERS</h1>
+                <p>Wholesale Jewellery Supplier</p>
+            </div>
+            <div class="header-buttons" id="headerButtons">
+                <div style="display: flex; gap: 0.75rem;">
+                    <label class="btn btn-primary">
+                        📤 Upload Inventory
+                        <input type="file" class="file-input" id="fileInput" accept=".xlsx,.xls">
+                    </label>
+                    <button class="btn btn-purple" id="downloadBtn" onclick="downloadAllReports()">
+                        📥 Download Reports
+                    </button>
+                </div>
+                <button class="btn btn-green" id="billBtn" onclick="showBill()" disabled>
+                    🛒 View Bill (0)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent"></div>
+
+    <script>
+        // Global State
+        let state = {
+            products: [],
+            cart: [],
+            orders: [], // All billed items with return option
+            goldPrice: '',
+            currentView: 'main',
+            salesHistory: []
+        };
+
+        // Initialize
+        function init() {
+            loadFromLocalStorage();
+            setupFileInput();
+            render();
+        }
+
+        function setupFileInput() {
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        }
+
+        // Local Storage
+        function loadFromLocalStorage() {
+            const savedProducts = localStorage.getItem('products');
+            const savedSales = localStorage.getItem('salesHistory');
+            const savedOrders = localStorage.getItem('orders');
+
+            if (savedProducts) {
+                state.products = JSON.parse(savedProducts);
+            }
+            if (savedSales) {
+                state.salesHistory = JSON.parse(savedSales);
+            }
+            if (savedOrders) {
+                state.orders = JSON.parse(savedOrders);
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('products', JSON.stringify(state.products));
+            localStorage.setItem('salesHistory', JSON.stringify(state.salesHistory));
+            localStorage.setItem('orders', JSON.stringify(state.orders));
+        }
+
+        // Handle File Upload
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '', header: 1 });
+
+                    if (jsonData.length < 2) {
+                        alert('Excel file is empty or has no data!');
+                        return;
+                    }
+
+                    // Get headers from first row
+                    const headers = jsonData[0];
+                    const nameIdx = headers.findIndex(h => 
+                        String(h).toLowerCase().includes('name') || 
+                        String(h).toLowerCase().includes('product') ||
+                        String(h).toLowerCase().includes('item')
+                    );
+                    
+                    const weightIdx = headers.findIndex(h => 
+                        String(h).toLowerCase().includes('weight') ||
+                        String(h).toLowerCase().includes('wt') ||
+                        String(h).toLowerCase().includes('gram')
+                    );
+
+                    const quantityIdx = headers.findIndex(h => 
+                        String(h).toLowerCase().includes('quantity') ||
+                        String(h).toLowerCase().includes('qty') ||
+                        String(h).toLowerCase().includes('stock')
+                    );
+
+                    console.log('Column indices:', { nameIdx, weightIdx, quantityIdx });
+                    console.log('Starting to parse rows...');
+
+                    // Group by product name and collect all weights
+                    const productMap = {};
+                    let currentProductName = '';
+                    
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        
+                        // Get product name - if empty, use the last valid name (for merged cells)
+                        let name = row[nameIdx] ? String(row[nameIdx]).trim() : '';
+                        if (name) {
+                            currentProductName = name;
+                            console.log(`Found new product: ${name}`);
+                        } else {
+                            name = currentProductName;
+                            console.log(`Using previous product: ${name}`);
+                        }
+                        
+                        let weight = 0;
+                        let quantity = 0;
+                        
+                        if (weightIdx >= 0 && row[weightIdx] !== undefined && row[weightIdx] !== '') {
+                            const weightValue = row[weightIdx];
+                            weight = parseFloat(weightValue) || 0;
+                        }
+
+                        if (quantityIdx >= 0 && row[quantityIdx] !== undefined && row[quantityIdx] !== '') {
+                            const qtyValue = row[quantityIdx];
+                            quantity = parseInt(qtyValue) || 0;
+                        }
+                        
+                        console.log(`Row ${i}: Product="${name}", Weight=${weight}g, Quantity=${quantity}`);
+                        
+                        // Only add if we have valid weight
+                        if (name && weight > 0) {
+                            if (!productMap[name]) {
+                                productMap[name] = {
+                                    id: Date.now() + Object.keys(productMap).length * 1000,
+                                    name: name,
+                                    weights: []
+                                };
+                                console.log(`Created new product entry for: ${name}`);
+                            }
+                            
+                            productMap[name].weights.push({
+                                id: Date.now() + i * 100 + Math.floor(Math.random() * 100),
+                                weight: weight,
+                                quantity: quantity
+                            });
+                            console.log(`Added weight ${weight}g (${quantity} units) to ${name}`);
+                        }
+                    }
+
+                    state.products = Object.values(productMap);
+                    
+                    console.log('=== Final Products ===');
+                    state.products.forEach(p => {
+                        console.log(`${p.name}: ${p.weights.length} weight variants`);
+                        p.weights.forEach(w => console.log(`  - ${w.weight}g: ${w.quantity} units`));
+                    });
+
+                    if (state.products.length === 0) {
+                        alert('No valid products found in the Excel file!');
+                        return;
+                    }
+
+                    saveToLocalStorage();
+                    alert(`✅ Successfully loaded ${state.products.length} products!`);
+                    render();
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error reading file: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = ''; // Reset input
+        }
+
+        // Download All Reports
+        function downloadAllReports() {
+            const wb = XLSX.utils.book_new();
+
+            // Sheet 1: Current Inventory (Remaining Stock) - Expanded format
+            const inventoryData = [];
+            state.products.forEach(product => {
+                product.weights.forEach(w => {
+                    inventoryData.push({
+                        'Product Name': product.name,
+                        'Weight (g)': w.weight,
+                        'Remaining Quantity': w.quantity
+                    });
+                });
+            });
+            
+            const inventoryWs = XLSX.utils.json_to_sheet(inventoryData);
+            XLSX.utils.book_append_sheet(wb, inventoryWs, 'Current Inventory');
+
+            // Sheet 2: Sales History (Sold Items)
+            if (state.salesHistory.length > 0) {
+                const salesWs = XLSX.utils.json_to_sheet(state.salesHistory);
+                XLSX.utils.book_append_sheet(wb, salesWs, 'Sales History');
+            }
+
+            const date = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Jewellery_Report_${date}.xlsx`);
+            
+            alert('✅ Reports downloaded!\n\n• Current Inventory (Remaining Stock)\n• Sales History (Sold Items)');
+        }
+
+        // Cart Functions
+        function addToCart(productId, weightId) {
+            const product = state.products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const weightVariant = product.weights.find(w => w.id === weightId);
+            if (!weightVariant || weightVariant.quantity < 1) {
+                alert('This item is out of stock!');
+                return;
+            }
+
+            const cartItemId = `${productId}-${weightId}`;
+            const existing = state.cart.find(item => item.cartId === cartItemId);
+            const currentCartQty = existing ? existing.quantity : 0;
+            
+            if (currentCartQty >= weightVariant.quantity) {
+                alert(`Only ${weightVariant.quantity} units available in stock!`);
+                return;
+            }
+
+            if (existing) {
+                state.cart = state.cart.map(item => 
+                    item.cartId === cartItemId 
+                        ? { ...item, quantity: item.quantity + 1 }
+                        : item
+                );
+            } else {
+                state.cart.push({ 
+                    cartId: cartItemId,
+                    productId: productId,
+                    weightId: weightId,
+                    name: product.name,
+                    weight: weightVariant.weight,
+                    quantity: 1,
+                    availableStock: weightVariant.quantity
+                });
+            }
+            render();
+        }
+
+        function addToStaging(productId, weightId) {
+            console.log('Deprecated function - now using orders system');
+        }
+
+        function regenerateReviewPDF(stagingId) {
+            console.log('Deprecated function - now using orders system');
+        }
+
+        function returnFromStaging(stagingId) {
+            console.log('Deprecated function - now using orders system');
+        }
+
+        function removeFromCart(cartId) {
+            state.cart = state.cart.filter(item => item.cartId !== cartId);
+            render();
+        }
+
+        function updateQuantity(cartId, quantity) {
+            if (quantity < 1) {
+                removeFromCart(cartId);
+                return;
+            }
+
+            const cartItem = state.cart.find(item => item.cartId === cartId);
+            if (!cartItem) return;
+            
+            const product = state.products.find(p => p.id === cartItem.productId);
+            const weightVariant = product.weights.find(w => w.id === cartItem.weightId);
+            
+            if (quantity > weightVariant.quantity) {
+                alert(`Only ${weightVariant.quantity} units available!`);
+                return;
+            }
+
+            state.cart = state.cart.map(item => 
+                item.cartId === cartId ? { ...item, quantity } : item
+            );
+            render();
+        }
+
+        function getTotalWeight() {
+            return state.cart.reduce((sum, item) => sum + (item.weight * item.quantity), 0);
+        }
+
+        function getTotalAmount() {
+            if (!state.goldPrice) return 0;
+            return getTotalWeight() * parseFloat(state.goldPrice);
+        }
+
+        // Complete Sale
+        function completeSale() {
+            const updatedProducts = state.products.map(product => {
+                const updatedWeights = product.weights.map(weightVariant => {
+                    const cartItem = state.cart.find(item => 
+                        item.productId === product.id && item.weightId === weightVariant.id
+                    );
+                    if (cartItem) {
+                        return { ...weightVariant, quantity: weightVariant.quantity - cartItem.quantity };
+                    }
+                    return weightVariant;
+                });
+                return { ...product, weights: updatedWeights };
+            });
+
+            // Add cart items to orders with bill info
+            const orderDate = new Date().toLocaleString('en-IN');
+            state.cart.forEach(item => {
+                state.orders.push({
+                    orderId: Date.now() + Math.random(),
+                    ...item,
+                    goldPrice: parseFloat(state.goldPrice),
+                    totalAmount: (item.weight * item.quantity) * parseFloat(state.goldPrice),
+                    orderDate: orderDate
+                });
+
+                // Create detailed sales record
+                state.salesHistory.push({
+                    'Date': orderDate,
+                    'Product Name': item.name,
+                    'Weight (g)': item.weight,
+                    'Quantity Sold': item.quantity,
+                    'Total Weight (g)': (item.weight * item.quantity).toFixed(2),
+                    'Gold Price (₹/g)': parseFloat(state.goldPrice).toFixed(2),
+                    'Amount (₹)': ((item.weight * item.quantity) * parseFloat(state.goldPrice)).toFixed(2)
+                });
+            });
+
+            state.products = updatedProducts;
+            saveToLocalStorage();
+
+            generatePDF();
+            
+            alert('✅ Sale completed!\n\n• Inventory updated\n• Items added to Orders\n• PDF generated');
+            
+            state.cart = [];
+            state.goldPrice = '';
+            state.currentView = 'main';
+            render();
+        }
+
+        function returnOrder(orderId) {
+            const order = state.orders.find(o => o.orderId === orderId);
+            if (!order) return;
+
+            if (!confirm(`Return ${order.quantity} unit(s) of ${order.name} (${order.weight}g) to inventory?`)) {
+                return;
+            }
+
+            // Add back to inventory
+            const updatedProducts = state.products.map(p => {
+                if (p.id === order.productId) {
+                    return {
+                        ...p,
+                        weights: p.weights.map(w => 
+                            w.id === order.weightId 
+                                ? { ...w, quantity: w.quantity + order.quantity }
+                                : w
+                        )
+                    };
+                }
+                return p;
+            });
+
+            state.products = updatedProducts;
+
+            // Remove from orders
+            state.orders = state.orders.filter(o => o.orderId !== orderId);
+
+            saveToLocalStorage();
+            alert('✅ Order returned to inventory!');
+            render();
+        }
+
+        // Generate PDF
+        function generatePDF() {
+            const billHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Invoice</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #d97706; padding-bottom: 20px; }
+                        .company { font-size: 28px; font-weight: bold; color: #d97706; }
+                        .subtitle { color: #666; margin-top: 5px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                        th { background-color: #f8f8f8; font-weight: bold; }
+                        .totals { margin-top: 30px; text-align: right; }
+                        .total-row { margin: 10px 0; font-size: 16px; }
+                        .final-total { font-size: 20px; font-weight: bold; color: #d97706; margin-top: 15px; padding-top: 15px; border-top: 2px solid #d97706; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="company">PREMIUM JEWELLERS</div>
+                        <div class="subtitle">Wholesale Jewellery Supplier</div>
+                        <div class="subtitle">Date: ${new Date().toLocaleDateString('en-IN')}</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Item</th><th>Weight (g)</th><th>Quantity</th><th>Total Weight (g)</th></tr>
+                        </thead>
+                        <tbody>
+                            ${state.cart.map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>${item.weight.toFixed(2)}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${(item.weight * item.quantity).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="totals">
+                        <div class="total-row">Total Weight: <strong>${getTotalWeight().toFixed(2)} g</strong></div>
+                        <div class="total-row">Gold Price: <strong>₹${parseFloat(state.goldPrice).toFixed(2)}/g</strong></div>
+                        <div class="final-total">Total Amount: ₹${getTotalAmount().toFixed(2)}</div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(billHTML);
+            printWindow.document.close();
+            setTimeout(() => printWindow.print(), 250);
+        }
+
+        function showBill() {
+            state.currentView = 'bill';
+            render();
+        }
+
+        function showMain() {
+            state.currentView = 'main';
+            render();
+        }
+
+        function updateGoldPrice(value) {
+            state.goldPrice = value;
+            // Update only the calculated amount section without re-rendering
+            const calculatedSection = document.getElementById('calculatedAmount');
+            if (calculatedSection) {
+                if (value && parseFloat(value) > 0) {
+                    calculatedSection.innerHTML = `
+                        <div class="total-row">
+                            <span class="total-label">Calculated Amount:</span>
+                            <span class="total-value" style="font-size: 1.2rem;">₹${getTotalAmount().toFixed(2)}</span>
+                        </div>
+                    `;
+                } else {
+                    calculatedSection.innerHTML = '';
+                }
+            }
+            
+            // Update button
+            const btnContainer = document.getElementById('saleButton');
+            if (btnContainer) {
+                if (!value || getTotalAmount() === 0) {
+                    btnContainer.innerHTML = `
+                        <button class="btn btn-green btn-full" onclick="${!value ? 'alert(\'Please enter gold price\')' : ''}">
+                            Calculate Total
+                        </button>
+                    `;
+                } else {
+                    btnContainer.innerHTML = `
+                        <button class="btn btn-primary btn-full" onclick="completeSale()">
+                            📄 Complete Sale & Export
+                        </button>
+                    `;
+                }
+            }
+        }
+
+        function clearInventory() {
+            if (confirm('Are you sure you want to clear all inventory? This will remove all products.')) {
+                state.products = [];
+                state.cart = [];
+                saveToLocalStorage();
+                render();
+                alert('✅ Inventory cleared successfully!');
+            }
+        }
+
+        // Render Functions
+        function renderMain() {
+            if (state.products.length === 0) {
+                return `
+                    <div class="container">
+                        <div class="card" style="text-align: center; padding: 4rem 2rem;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                            <h2 style="color: #374151; margin-bottom: 0.5rem;">No Inventory Loaded</h2>
+                            <p style="color: #6b7280; margin-bottom: 1.5rem;">Upload an Excel file to get started</p>
+                            <p style="color: #9ca3af; font-size: 0.9rem;">Excel format: Product Name | Weight | Quantity</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="container">
+                    <div class="layout">
+                        <div>
+                            <h2 style="color: #1f2937; margin-bottom: 1.5rem;">Products Catalog</h2>
+                            <table class="product-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Weight (g)</th>
+                                        <th>Stock</th>
+                                        <th style="text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.products.map(product => 
+                                        product.weights && product.weights.length > 0 ? 
+                                        product.weights.map((weightVar, idx) => `
+                                            <tr class="${idx === product.weights.length - 1 ? 'product-last-row' : ''}">
+                                                <td class="product-name-cell">
+                                                    ${idx === 0 ? product.name : ''}
+                                                </td>
+                                                <td class="weight-cell">${weightVar.weight}</td>
+                                                <td>
+                                                    <span class="stock-value ${weightVar.quantity > 5 ? 'stock-high' : weightVar.quantity > 0 ? 'stock-low' : 'stock-out'}">
+                                                        ${weightVar.quantity} units
+                                                    </span>
+                                                </td>
+                                                <td class="action-cell">
+                                                    <button 
+                                                        class="btn btn-primary" 
+                                                        style="padding: 0.5rem 1.5rem;"
+                                                        onclick="addToCart(${product.id}, ${weightVar.id})"
+                                                        ${weightVar.quantity < 1 ? 'disabled' : ''}
+                                                    >
+                                                        🛒 Add to Bill
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `).join('') : 
+                                        '<tr><td colspan="4" style="text-align: center; color: #6b7280;">No weights available</td></tr>'
+                                    ).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="cart-section">
+                            <div class="card">
+                                <h2 style="color: #5b21b6; margin-bottom: 1.5rem;">Current Bill</h2>
+                                ${state.cart.length === 0 ? 
+                                    '<p style="color: #6b7280; text-align: center; padding: 2rem;">No items added yet</p>' 
+                                    : 
+                                    `<div class="cart-items">
+                                        ${state.cart.map(item => `
+                                            <div class="cart-item">
+                                                <div class="cart-item-header">
+                                                    <span class="cart-item-name">${item.name} (${item.weight}g)</span>
+                                                    <button class="remove-btn" onclick="removeFromCart('${item.cartId}')">🗑️</button>
+                                                </div>
+                                                <div class="cart-item-controls">
+                                                    <div class="quantity-controls">
+                                                        <button class="qty-btn" onclick="updateQuantity('${item.cartId}', ${item.quantity - 1})">-</button>
+                                                        <span style="width: 32px; text-align: center;">${item.quantity}</span>
+                                                        <button class="qty-btn" onclick="updateQuantity('${item.cartId}', ${item.quantity + 1})">+</button>
+                                                    </div>
+                                                    <span style="color: #6b7280;">${(item.weight * item.quantity).toFixed(2)} g</span>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    <div style="border-top: 2px solid #c4b5fd; padding-top: 1rem;">
+                                        <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 600;">
+                                            <span style="color: #5b21b6;">Total Weight:</span>
+                                            <span style="color: #7c3aed;">${getTotalWeight().toFixed(2)} g</span>
+                                        </div>
+                                    </div>`
+                                }
+                            </div>
+                            
+                            ${state.orders.length > 0 ? `
+                                <div class="card" style="margin-top: 1.5rem;">
+                                    <h2 style="color: #5b21b6; margin-bottom: 1.5rem;">📦 Orders (${state.orders.length})</h2>
+                                    <div style="max-height: 400px; overflow-y: auto;">
+                                        ${state.orders.map(order => `
+                                            <div style="border: 1px solid #e9d5ff; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; background: #faf5ff;">
+                                                <div style="margin-bottom: 0.75rem;">
+                                                    <div style="font-weight: 600; color: #5b21b6; margin-bottom: 0.25rem;">${order.name}</div>
+                                                    <div style="font-size: 0.85rem; color: #6b7280;">${order.orderDate}</div>
+                                                </div>
+                                                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                                    <span style="color: #6b7280;">Weight:</span>
+                                                    <span style="font-weight: 600;">${order.weight}g × ${order.quantity}</span>
+                                                </div>
+                                                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.75rem;">
+                                                    <span style="color: #6b7280;">Amount:</span>
+                                                    <span style="font-weight: 600; color: #7c3aed;">₹${order.totalAmount.toFixed(2)}</span>
+                                                </div>
+                                                <button 
+                                                    class="btn btn-green" 
+                                                    style="width: 100%; padding: 0.5rem;"
+                                                    onclick="returnOrder(${order.orderId})"
+                                                >
+                                                    ↩️ Return to Inventory
+                                                </button>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBill() {
+            return `
+                <div class="container" style="max-width: 900px;">
+                    <div class="card">
+                        <div class="bill-header">
+                            <div class="company-name">PREMIUM JEWELLERS</div>
+                            <p style="color: #666;">Wholesale Jewellery Supplier</p>
+                            <p style="color: #9ca3af; font-size: 0.9rem; margin-top: 0.5rem;">
+                                Date: ${new Date().toLocaleDateString('en-IN')}
+                            </p>
+                        </div>
+
+                        <table class="bill-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-right">Weight (g)</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-right">Total (g)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${state.cart.map(item => `
+                                    <tr>
+                                        <td>${item.name}</td>
+                                        <td class="text-right">${item.weight.toFixed(2)}</td>
+                                        <td class="text-center">${item.quantity}</td>
+                                        <td class="text-right" style="font-weight: 600;">
+                                            ${(item.weight * item.quantity).toFixed(2)}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+
+                        <div class="bill-totals">
+                            <div class="total-row">
+                                <span class="total-label">Total Weight:</span>
+                                <span class="total-value" style="font-weight: bold;">${getTotalWeight().toFixed(2)} g</span>
+                            </div>
+
+                            <div class="total-row">
+                                <span class="total-label">Gold Price (₹/g):</span>
+                                <input 
+                                    type="number" 
+                                    class="gold-price-input" 
+                                    id="goldPriceInput"
+                                    value="${state.goldPrice}"
+                                    placeholder="Enter price"
+                                    oninput="updateGoldPrice(this.value)"
+                                >
+                            </div>
+
+                            <div id="calculatedAmount">
+                                ${state.goldPrice ? `
+                                    <div class="total-row">
+                                        <span class="total-label">Calculated Amount:</span>
+                                        <span class="total-value" style="font-size: 1.2rem;">₹${getTotalAmount().toFixed(2)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <div class="button-row">
+                            <button class="btn btn-gray btn-full" onclick="showMain()">
+                                ← Back
+                            </button>
+                            <div id="saleButton" class="btn-full">
+                                ${!state.goldPrice || getTotalAmount() === 0 ? 
+                                    `<button class="btn btn-green btn-full" onclick="${!state.goldPrice ? 'alert(\'Please enter gold price\')' : ''}">
+                                        Calculate Total
+                                    </button>` 
+                                    : 
+                                    `<button class="btn btn-primary btn-full" onclick="completeSale()">
+                                        📄 Complete Sale & Export
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const content = document.getElementById('mainContent');
+            const billBtn = document.getElementById('billBtn');
+            
+            if (state.currentView === 'bill') {
+                content.innerHTML = renderBill();
+            } else {
+                content.innerHTML = renderMain();
+            }
+
+            // Update bill button
+            billBtn.textContent = `🛒 View Bill (${state.cart.length})`;
+            billBtn.disabled = state.cart.length === 0;
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>)
+}
