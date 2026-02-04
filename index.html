@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Jewellers - Wholesale System</title>
+    <title>V.H. & SONS - Wholesale System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -38,7 +39,7 @@
             color: #ffffff;
             font-size: 2rem;
             margin-bottom: 0.25rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .logo p {
@@ -187,14 +188,14 @@
             text-align: center;
         }
 
-        .stock-value {
+        /* .stock-value {
             font-weight: 600;
             font-size: 1.1rem;
         }
 
         .stock-high { color: #059669; }
         .stock-low { color: #d97706; }
-        .stock-out { color: #dc2626; }
+        .stock-out { color: #dc2626; } */
 
         .cart-section {
             position: sticky;
@@ -247,11 +248,11 @@
             font-size: 0.9rem;
         }
 
-        .quantity-controls {
+        /* .quantity-controls {
             display: flex;
             gap: 0.5rem;
             align-items: center;
-        }
+        } */
 
         .qty-btn {
             width: 28px;
@@ -363,10 +364,6 @@
             margin-top: 2rem;
         }
 
-        .btn-full {
-            flex: 1;
-        }
-
         .hidden {
             display: none;
         }
@@ -381,14 +378,19 @@
             display: none;
         }
 
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
 
         @media (max-width: 1024px) {
             .layout {
                 grid-template-columns: 1fr;
             }
-            
+
             .cart-section {
                 position: relative;
                 top: 0;
@@ -396,6 +398,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <div class="header">
@@ -479,7 +482,7 @@
                 try {
                     const data = new Uint8Array(evt.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    
+
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '', header: 1 });
 
@@ -490,34 +493,43 @@
 
                     // Get headers from first row
                     const headers = jsonData[0];
-                    const nameIdx = headers.findIndex(h => 
-                        String(h).toLowerCase().includes('name') || 
+
+                    const srIdx = headers.findIndex(h =>
+                        String(h).toLowerCase().includes('sr') ||
+                        String(h).toLowerCase().includes('serial') ||
+                        String(h).toLowerCase().includes('sr no') ||
+                        String(h).toLowerCase().includes('sr. no.')
+                    );
+
+
+                    const nameIdx = headers.findIndex(h =>
+                        String(h).toLowerCase().includes('name') ||
                         String(h).toLowerCase().includes('product') ||
                         String(h).toLowerCase().includes('item')
                     );
-                    
-                    const weightIdx = headers.findIndex(h => 
+
+                    const weightIdx = headers.findIndex(h =>
                         String(h).toLowerCase().includes('weight') ||
                         String(h).toLowerCase().includes('wt') ||
                         String(h).toLowerCase().includes('gram')
                     );
 
-                    const quantityIdx = headers.findIndex(h => 
-                        String(h).toLowerCase().includes('quantity') ||
-                        String(h).toLowerCase().includes('qty') ||
-                        String(h).toLowerCase().includes('stock')
-                    );
+                    // const quantityIdx = headers.findIndex(h => 
+                    //     String(h).toLowerCase().includes('quantity') ||
+                    //     String(h).toLowerCase().includes('qty') ||
+                    //     String(h).toLowerCase().includes('stock')
+                    // );
 
-                    console.log('Column indices:', { nameIdx, weightIdx, quantityIdx });
+                    console.log('Column indices:', { srIdx, nameIdx, weightIdx });
                     console.log('Starting to parse rows...');
 
                     // Group by product name and collect all weights
                     const productMap = {};
                     let currentProductName = '';
-                    
+
                     for (let i = 1; i < jsonData.length; i++) {
                         const row = jsonData[i];
-                        
+
                         // Get product name - if empty, use the last valid name (for merged cells)
                         let name = row[nameIdx] ? String(row[nameIdx]).trim() : '';
                         if (name) {
@@ -527,22 +539,22 @@
                             name = currentProductName;
                             console.log(`Using previous product: ${name}`);
                         }
-                        
+
                         let weight = 0;
-                        let quantity = 0;
-                        
+                        // let quantity = 0;
+
                         if (weightIdx >= 0 && row[weightIdx] !== undefined && row[weightIdx] !== '') {
                             const weightValue = row[weightIdx];
                             weight = parseFloat(weightValue) || 0;
                         }
 
-                        if (quantityIdx >= 0 && row[quantityIdx] !== undefined && row[quantityIdx] !== '') {
-                            const qtyValue = row[quantityIdx];
-                            quantity = parseInt(qtyValue) || 0;
-                        }
-                        
-                        console.log(`Row ${i}: Product="${name}", Weight=${weight}g, Quantity=${quantity}`);
-                        
+                        // if (quantityIdx >= 0 && row[quantityIdx] !== undefined && row[quantityIdx] !== '') {
+                        //     const qtyValue = row[quantityIdx];
+                        //     quantity = parseInt(qtyValue) || 0;
+                        // }
+
+                        console.log(`Row ${i}: Product="${name}", Weight=${weight}g`);
+
                         // Only add if we have valid weight
                         if (name && weight > 0) {
                             if (!productMap[name]) {
@@ -553,22 +565,24 @@
                                 };
                                 console.log(`Created new product entry for: ${name}`);
                             }
-                            
+
                             productMap[name].weights.push({
                                 id: Date.now() + i * 100 + Math.floor(Math.random() * 100),
-                                weight: weight,
-                                quantity: quantity
+                                srNo: row[srIdx],   // <-- THIS WAS MISSING
+                                weight: weight
                             });
-                            console.log(`Added weight ${weight}g (${quantity} units) to ${name}`);
+
+
+                            console.log(`Added weight ${weight}g to ${name}`);
                         }
                     }
 
                     state.products = Object.values(productMap);
-                    
+
                     console.log('=== Final Products ===');
                     state.products.forEach(p => {
                         console.log(`${p.name}: ${p.weights.length} weight variants`);
-                        p.weights.forEach(w => console.log(`  - ${w.weight}g: ${w.quantity} units`));
+                        p.weights.forEach(w => console.log(`  - ${w.weight}g:`));
                     });
 
                     if (state.products.length === 0) {
@@ -599,11 +613,11 @@
                     inventoryData.push({
                         'Product Name': product.name,
                         'Weight (g)': w.weight,
-                        'Remaining Quantity': w.quantity
+                        // 'Remaining Quantity': w.quantity
                     });
                 });
             });
-            
+
             const inventoryWs = XLSX.utils.json_to_sheet(inventoryData);
             XLSX.utils.book_append_sheet(wb, inventoryWs, 'Current Inventory');
 
@@ -615,7 +629,7 @@
 
             const date = new Date().toISOString().split('T')[0];
             XLSX.writeFile(wb, `Jewellery_Report_${date}.xlsx`);
-            
+
             alert('✅ Reports downloaded!\n\n• Current Inventory (Remaining Stock)\n• Sales History (Sold Items)');
         }
 
@@ -623,7 +637,7 @@
         function addToCart(productId, weightId) {
             const product = state.products.find(p => p.id === productId);
             if (!product) return;
-            
+
             const weightVariant = product.weights.find(w => w.id === weightId);
             if (!weightVariant || weightVariant.quantity < 1) {
                 alert('This item is out of stock!');
@@ -633,27 +647,27 @@
             const cartItemId = `${productId}-${weightId}`;
             const existing = state.cart.find(item => item.cartId === cartItemId);
             const currentCartQty = existing ? existing.quantity : 0;
-            
+
             if (currentCartQty >= weightVariant.quantity) {
                 alert(`Only ${weightVariant.quantity} units available in stock!`);
                 return;
             }
 
             if (existing) {
-                state.cart = state.cart.map(item => 
-                    item.cartId === cartItemId 
+                state.cart = state.cart.map(item =>
+                    item.cartId === cartItemId
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
             } else {
-                state.cart.push({ 
+                state.cart.push({
                     cartId: cartItemId,
                     productId: productId,
                     weightId: weightId,
                     name: product.name,
                     weight: weightVariant.weight,
                     quantity: 1,
-                    availableStock: weightVariant.quantity
+                    // availableStock: weightVariant.quantity
                 });
             }
             render();
@@ -676,31 +690,31 @@
             render();
         }
 
-        function updateQuantity(cartId, quantity) {
-            if (quantity < 1) {
-                removeFromCart(cartId);
-                return;
-            }
+        // function updateQuantity(cartId, quantity) {
+        //     if (quantity < 1) {
+        //         removeFromCart(cartId);
+        //         return;
+        //     }
 
-            const cartItem = state.cart.find(item => item.cartId === cartId);
-            if (!cartItem) return;
-            
-            const product = state.products.find(p => p.id === cartItem.productId);
-            const weightVariant = product.weights.find(w => w.id === cartItem.weightId);
-            
-            if (quantity > weightVariant.quantity) {
-                alert(`Only ${weightVariant.quantity} units available!`);
-                return;
-            }
+        //     const cartItem = state.cart.find(item => item.cartId === cartId);
+        //     if (!cartItem) return;
 
-            state.cart = state.cart.map(item => 
-                item.cartId === cartId ? { ...item, quantity } : item
-            );
-            render();
-        }
+        //     const product = state.products.find(p => p.id === cartItem.productId);
+        //     const weightVariant = product.weights.find(w => w.id === cartItem.weightId);
+
+        //     if (quantity > weightVariant.quantity) {
+        //         alert(`Only ${weightVariant.quantity} units available!`);
+        //         return;
+        //     }
+
+        //     state.cart = state.cart.map(item => 
+        //         item.cartId === cartId ? { ...item, quantity } : item
+        //     );
+        //     render();
+        // }
 
         function getTotalWeight() {
-            return state.cart.reduce((sum, item) => sum + (item.weight * item.quantity), 0);
+            return state.cart.reduce((sum, item) => sum + (item.weight), 0);
         }
 
         function getTotalAmount() {
@@ -712,11 +726,11 @@
         function completeSale() {
             const updatedProducts = state.products.map(product => {
                 const updatedWeights = product.weights.map(weightVariant => {
-                    const cartItem = state.cart.find(item => 
+                    const cartItem = state.cart.find(item =>
                         item.productId === product.id && item.weightId === weightVariant.id
                     );
                     if (cartItem) {
-                        return { ...weightVariant, quantity: weightVariant.quantity - cartItem.quantity };
+                        return { ...weightVariant };
                     }
                     return weightVariant;
                 });
@@ -739,8 +753,8 @@
                     'Date': orderDate,
                     'Product Name': item.name,
                     'Weight (g)': item.weight,
-                    'Quantity Sold': item.quantity,
-                    'Total Weight (g)': (item.weight * item.quantity).toFixed(2),
+                    // 'Quantity Sold': item.quantity,
+                    'Total Weight (g)': (item.weight).toFixed(2),
                     'Gold Price (₹/g)': parseFloat(state.goldPrice).toFixed(2),
                     'Amount (₹)': ((item.weight * item.quantity) * parseFloat(state.goldPrice)).toFixed(2)
                 });
@@ -750,9 +764,9 @@
             saveToLocalStorage();
 
             generatePDF();
-            
+
             alert('✅ Sale completed!\n\n• Inventory updated\n• Items added to Orders\n• PDF generated');
-            
+
             state.cart = [];
             state.goldPrice = '';
             state.currentView = 'main';
@@ -763,7 +777,7 @@
             const order = state.orders.find(o => o.orderId === orderId);
             if (!order) return;
 
-            if (!confirm(`Return ${order.quantity} unit(s) of ${order.name} (${order.weight}g) to inventory?`)) {
+            if (!confirm(`Return ${order.name} (${order.weight}g) to inventory?`)) {
                 return;
             }
 
@@ -772,9 +786,9 @@
                 if (p.id === order.productId) {
                     return {
                         ...p,
-                        weights: p.weights.map(w => 
-                            w.id === order.weightId 
-                                ? { ...w, quantity: w.quantity + order.quantity }
+                        weights: p.weights.map(w =>
+                            w.id === order.weightId
+                                ? { ...w }
                                 : w
                         )
                     };
@@ -814,21 +828,20 @@
                 </head>
                 <body>
                     <div class="header">
-                        <div class="company">PREMIUM JEWELLERS</div>
+                        <div class="company">V.H. & SONS</div>
                         <div class="subtitle">Wholesale Jewellery Supplier</div>
                         <div class="subtitle">Date: ${new Date().toLocaleDateString('en-IN')}</div>
                     </div>
                     <table>
                         <thead>
-                            <tr><th>Item</th><th>Weight (g)</th><th>Quantity</th><th>Total Weight (g)</th></tr>
+                            <tr><th>Item</th><th>Weight (g)<th>Total Weight (g)</th></tr>
                         </thead>
                         <tbody>
                             ${state.cart.map(item => `
                                 <tr>
                                     <td>${item.name}</td>
                                     <td>${item.weight.toFixed(2)}</td>
-                                    <td>${item.quantity}</td>
-                                    <td>${(item.weight * item.quantity).toFixed(2)}</td>
+                                    <td>${(item.weight).toFixed(2)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -841,7 +854,7 @@
                 </body>
                 </html>
             `;
-            
+
             const printWindow = window.open('', '_blank');
             printWindow.document.write(billHTML);
             printWindow.document.close();
@@ -874,7 +887,7 @@
                     calculatedSection.innerHTML = '';
                 }
             }
-            
+
             // Update button
             const btnContainer = document.getElementById('saleButton');
             if (btnContainer) {
@@ -913,7 +926,7 @@
                             <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
                             <h2 style="color: #374151; margin-bottom: 0.5rem;">No Inventory Loaded</h2>
                             <p style="color: #6b7280; margin-bottom: 1.5rem;">Upload an Excel file to get started</p>
-                            <p style="color: #9ca3af; font-size: 0.9rem;">Excel format: Product Name | Weight | Quantity</p>
+                            <p style="color: #9ca3af; font-size: 0.9rem;">Excel format: Serial Number | Product Name | Weight</p>
                         </div>
                     </div>
                 `;
@@ -927,65 +940,63 @@
                             <table class="product-table">
                                 <thead>
                                     <tr>
+                                        <th>Sr. No.</th>
                                         <th>Product Name</th>
                                         <th>Weight (g)</th>
-                                        <th>Stock</th>
-                                        <th style="text-align: center;">Action</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${state.products.map(product => 
-                                        product.weights && product.weights.length > 0 ? 
-                                        product.weights.map((weightVar, idx) => `
-                                            <tr class="${idx === product.weights.length - 1 ? 'product-last-row' : ''}">
-                                                <td class="product-name-cell">
-                                                    ${idx === 0 ? product.name : ''}
-                                                </td>
-                                                <td class="weight-cell">${weightVar.weight}</td>
-                                                <td>
-                                                    <span class="stock-value ${weightVar.quantity > 5 ? 'stock-high' : weightVar.quantity > 0 ? 'stock-low' : 'stock-out'}">
-                                                        ${weightVar.quantity} units
-                                                    </span>
-                                                </td>
-                                                <td class="action-cell">
-                                                    <button 
-                                                        class="btn btn-primary" 
-                                                        style="padding: 0.5rem 1.5rem;"
-                                                        onclick="addToCart(${product.id}, ${weightVar.id})"
-                                                        ${weightVar.quantity < 1 ? 'disabled' : ''}
-                                                    >
-                                                        🛒 Add to Bill
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        `).join('') : 
-                                        '<tr><td colspan="4" style="text-align: center; color: #6b7280;">No weights available</td></tr>'
+                                    ${state.products.map(product =>
+                                        product.weights && product.weights.length > 0
+                                            ? product.weights.map((weightVar, idx) => `
+                                                <tr class="${idx === product.weights.length - 1 ? 'product-last-row' : ''}">
+                                                    <td class="text-center">
+                                                        ${weightVar.srNo}
+                                                    </td>
+                                                    <td class="product-name-cell">
+                                                        ${idx === 0 ? product.name : ''}
+                                                    </td>
+                                                    <td class="weight-cell">
+                                                        ${weightVar.weight}
+                                                    </td>
+                                                    <td class="action-cell">
+                                                        <button 
+                                                            class="btn btn-primary"
+                                                            style="padding: 0.5rem 1.5rem;"
+                                                            onclick="addToCart(${product.id}, ${weightVar.id})">
+                                                            🛒 Add to Bill
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `).join('')
+                                            : `
+                                                <tr>
+                                                    <td colspan="4" style="text-align:center;color:#6b7280;">
+                                                        No weights available
+                                                    </td>
+                                                </tr>
+                                            `
                                     ).join('')}
                                 </tbody>
+
                             </table>
                         </div>
 
                         <div class="cart-section">
                             <div class="card">
                                 <h2 style="color: #5b21b6; margin-bottom: 1.5rem;">Current Bill</h2>
-                                ${state.cart.length === 0 ? 
-                                    '<p style="color: #6b7280; text-align: center; padding: 2rem;">No items added yet</p>' 
-                                    : 
-                                    `<div class="cart-items">
+                                ${state.cart.length === 0 ?
+                    '<p style="color: #6b7280; text-align: center; padding: 2rem;">No items added yet</p>'
+                    :
+                    `<div class="cart-items">
                                         ${state.cart.map(item => `
                                             <div class="cart-item">
                                                 <div class="cart-item-header">
-                                                    <span class="cart-item-name">${item.name} (${item.weight}g)</span>
+                                                    <span class="cart-item-name" style="color:black">${item.name} (${item.weight}g)</span>
                                                     <button class="remove-btn" onclick="removeFromCart('${item.cartId}')">🗑️</button>
                                                 </div>
-                                                <div class="cart-item-controls">
-                                                    <div class="quantity-controls">
-                                                        <button class="qty-btn" onclick="updateQuantity('${item.cartId}', ${item.quantity - 1})">-</button>
-                                                        <span style="width: 32px; text-align: center;">${item.quantity}</span>
-                                                        <button class="qty-btn" onclick="updateQuantity('${item.cartId}', ${item.quantity + 1})">+</button>
-                                                    </div>
-                                                    <span style="color: #6b7280;">${(item.weight * item.quantity).toFixed(2)} g</span>
-                                                </div>
+                                                
                                             </div>
                                         `).join('')}
                                     </div>
@@ -995,7 +1006,7 @@
                                             <span style="color: #7c3aed;">${getTotalWeight().toFixed(2)} g</span>
                                         </div>
                                     </div>`
-                                }
+                }
                             </div>
                             
                             ${state.orders.length > 0 ? `
@@ -1010,7 +1021,7 @@
                                                 </div>
                                                 <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem;">
                                                     <span style="color: #6b7280;">Weight:</span>
-                                                    <span style="font-weight: 600;">${order.weight}g × ${order.quantity}</span>
+                                                    <span style="font-weight: 600;">${order.weight}g</span>
                                                 </div>
                                                 <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.75rem;">
                                                     <span style="color: #6b7280;">Amount:</span>
@@ -1039,7 +1050,7 @@
                 <div class="container" style="max-width: 900px;">
                     <div class="card">
                         <div class="bill-header">
-                            <div class="company-name">PREMIUM JEWELLERS</div>
+                            <div class="company-name">V.H. & SONS</div>
                             <p style="color: #666;">Wholesale Jewellery Supplier</p>
                             <p style="color: #9ca3af; font-size: 0.9rem; margin-top: 0.5rem;">
                                 Date: ${new Date().toLocaleDateString('en-IN')}
@@ -1051,7 +1062,6 @@
                                 <tr>
                                     <th>Item</th>
                                     <th class="text-right">Weight (g)</th>
-                                    <th class="text-center">Qty</th>
                                     <th class="text-right">Total (g)</th>
                                 </tr>
                             </thead>
@@ -1060,9 +1070,8 @@
                                     <tr>
                                         <td>${item.name}</td>
                                         <td class="text-right">${item.weight.toFixed(2)}</td>
-                                        <td class="text-center">${item.quantity}</td>
                                         <td class="text-right" style="font-weight: 600;">
-                                            ${(item.weight * item.quantity).toFixed(2)}
+                                            ${(item.weight).toFixed(2)}
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -1102,15 +1111,15 @@
                                 ← Back
                             </button>
                             <div id="saleButton" class="btn-full">
-                                ${!state.goldPrice || getTotalAmount() === 0 ? 
-                                    `<button class="btn btn-green btn-full" onclick="${!state.goldPrice ? 'alert(\'Please enter gold price\')' : ''}">
+                                ${!state.goldPrice || getTotalAmount() === 0 ?
+                    `<button class="btn btn-green btn-full" onclick="${!state.goldPrice ? 'alert(\'Please enter gold price\')' : ''}">
                                         Calculate Total
-                                    </button>` 
-                                    : 
-                                    `<button class="btn btn-primary btn-full" onclick="completeSale()">
+                                    </button>`
+                    :
+                    `<button class="btn btn-primary btn-full" onclick="completeSale()">
                                         📄 Complete Sale & Export
                                     </button>`
-                                }
+                }
                             </div>
                         </div>
                         </div>
@@ -1122,7 +1131,7 @@
         function render() {
             const content = document.getElementById('mainContent');
             const billBtn = document.getElementById('billBtn');
-            
+
             if (state.currentView === 'bill') {
                 content.innerHTML = renderBill();
             } else {
@@ -1138,5 +1147,5 @@
         init();
     </script>
 </body>
-</html>)
-}
+
+</html>
